@@ -1,0 +1,51 @@
+label {
+    background-color: white;
+}
+body {
+    background-color:rgb(224, 242, 251);
+    background-color:rgb( 162, 234, 190);
+}
+
+button {
+  width: 100px;
+  height: 30px;
+  font-size: 80%;
+  background-color: cyan;
+}
+
+span {
+    border: 1px dotted green;
+    text-align: center;
+    color: black;
+  }
+
+span:hover {
+    text-decoration: none;
+    color: red;
+    background-color: #c0ffee;
+}
+
+p {
+  width: 600px;
+}
+
+li {
+  width: 600px;
+}
+
+blockquote {
+  width: 500px;
+}
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table, td {
+  border-collapse: collapse;
+  width: 500px;
+}
+
+
