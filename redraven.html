@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang-en-US>  <!-- redraven.html  Uses only HTML/Javascript. -->
+<head>
+  <title>RedRaven Praxinoscope Toy -- Javascript Simulation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="cache-control" content="no-cache" /> 
+  <meta http-equiv="expires" content="timestamp">
+  <link rel="stylesheet" href="static/ravenstyles.css">
+  <script src="static/ravendata.js"> </script>
+  <script src="static/ravencode.js"> </script>
+</head>
+
+<body>
+  <h2>Red Raven Magic Mirror</h2>
+  <h3>  "Praxinoscope" Simulation in Javascript </h3>
+  <span id="flask5000">[ <a href="/animation">Animation</a> ]&nbsp;[ <a href="/about">About</a> ] <br></span>
+  <span id="http8080">[ <a href="redraven.html">Animation</a> ]&nbsp;[ <a href="templates/about.html">About</a> ] <br></span>
+  <label for="disks">Disk Select:</label>
+  <select name="disks" id="disks" onchange="diskChooser()"></select>
+  <div id="buttonlinks"></div> 
+  <p><span id="feedback">feedback</span></p>
+  <h3>
+    <button onclick="step()">step </button>
+    <button id="loop" onclick=loop()> loop </button>
+    <button id="stop" disabled onclick=stop()> stop </button>
+    <button id="tog" onclick='document.getElementById("scannedDisk").style.display=(sSD?"none":"block"); sSD=!sSD '>show/hide</button>
+    <button onclick='FPR=prompt("Frames/Revolution="+FPR+" New?",FPR)'>FPR </button>
+    <button onclick='RPM=prompt("RPM="+RPM+" New?",RPM)'>RPM </button>
+  </h3>
+  <span id="songdata"></span>
+  <P>                     <!-- MAGIC #s; 5 occurrences of 1120 (including this.) -->
+    <canvas id="myCanvas" width="1120" height="1120" style="border:1px solid gray"></canvas>
+    <span><img id="scannedDisk" width="1120" height="1120"></span>
+  </P>
+  <script>
+    const img = document.getElementById("scannedDisk");
+    const c = document.getElementById("myCanvas");
+    const x = c.width; const y = c.height;
+    const ctx = c.getContext("2d");
+    theta = 120 * Math.PI / 180.0  // changes angle size of clip region. 
+    FPR = 16;   // framesPerRevolution 
+    sSD  = true // show Scanned Disk
+
+    // load, loadIndexed, diskChooser moved to shared ravencode.js
+
+    window.onload = function () {
+      var s = document.createElement('script');
+      s.type = 'text/javascript';
+      var code = 'alert("hello world!");';
+      var code = 'makeButtonLinks();fillDiskSelect();feedback("Loaded.");mask();whichServer();'
+      try {
+        s.appendChild(document.createTextNode(code));
+        document.body.appendChild(s);
+      } catch (e) {
+        s.text = code;
+        document.body.appendChild(s);
+      }
+      console.log("Startup code: " + code + "\nSongs:")
+      console.table(songs)
+      load("rr-list.jpg");
+    }
+
+    function makeButtonLinks() {
+      for (var i = 0; i < songs.length; i++) {
+        var song = songs[i].split(",");  // format: buttonLabel, title, imgFileName,FPR 
+        pooh = "<B>&nbsp;&nbsp;" + Number(i+1) + "&nbsp;&nbsp;</B>"
+        X = song[2]; FPR = song[3]
+        pooh = '<span onmouseover="myOver(' +i+ ')"  onmouseOut="myOut(' +i+ ')"' +
+          ' onClick="loadIndexed(' + i + '); ">' + pooh + '</span>\n'
+        document.getElementById("buttonlinks").innerHTML += pooh
+        // console.log(pooh)
+      }
+    }
+
+    function fillDiskSelect() { // assumes songs was instantiated in ravendata.js
+      var select = document.getElementById("disks");
+      disks.innerHTML = ""; //  Clear all existing options 
+      select.innerHTML = "<option selected disabled> Select... </option>\n"
+      for (var i = 0; i < songs.length; i++) {
+        var song = songs[i].split(",");  // buttonLabel, title, imgFileName,FPR
+        select.innerHTML += "<option value=\"" + song[0] + "\">" + song[1] + "</option>\n";
+      }
+    }
+
+    ctx.clearRect(0, 0, c.width, c.height);
+  </script>
+
+</body>
+</HTML>

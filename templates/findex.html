@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>FRedRaven Praxinoscope Toy -- Flask/Javascript Simulation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="cache-control" content="no-cache" /> 
+    <meta http-equiv="expires" content="timestamp">
+    <link rel="stylesheet" href="static/ravenstyles.css">
+    <link rel="stylesheet" href="static/ravenstyles.css">
+    <script src="static/ravendata.js"> </script>
+    <script src="static/ravencode.js"> </script>
+</head>
+
+<body>
+<h2>Red Raven Magic Mirror</h2>
+<h3>  "Praxinoscope" Simulation in Javascript</h3>
+<span id="flask5000">[ <a href="/animation">Animation</a> ]&nbsp;[ <a href="/about">About</a> ] <br></span>
+<span id="http8080">[ <a href="redraven.html">Animation</a> ]&nbsp;[ <a href="templates/about.html">About</a> ] <br></span>
+
+<label for="disks">Disk Select:</label>
+<select id="disks"  onchange="diskChooser()">
+    <option disabled selected>Disks</option>
+    {% for song in songs %}
+        <option value="{{ song | safe }}">{{ song[1] }}</option>
+    {% endfor %}
+</select>
+
+<div id="buttonlinks"> <!-- these are spans, not buttons -->
+{% for song in songs %}
+    {% set n = song[0] | int -1 %}
+    <span onmouseover="myOver({{n}})" onmouseOut="myOut({{n}})" onClick="loadIndexed({{n}}); ">
+        <B>&nbsp;&nbsp;{{song[0]}}&nbsp;&nbsp;</B></span>
+{% endfor %}
+</div> 
+
+<p><span id="feedback">feedback</span></p>
+<h3>
+  <button onclick="step()">step </button>
+  <button id="loop" onclick=loop()> loop </button>
+  <button id="stop" disabled onclick=stop()> stop </button>
+  <button id="tog" onclick='document.getElementById("scannedDisk").style.display=(sSD?"none":"block"); sSD=!sSD;'>show/hide</button>
+  <button onclick='FPR=prompt("Frames/Revolution="+FPR+" New?",FPR)'>FPR </button>
+  <button onclick='RPM=prompt("RPM="+RPM+" New?",RPM)'>RPM </button>
+</h3>
+<span id="songdata"></span>
+<P> <!-- THE MAGIC # IS: {{x}}  -->
+    <canvas id="myCanvas" width="{{x}}" height="{{x}}" style="border:1px solid gray"></canvas>
+    Canvas Size: {{x}} 
+    <span><img id="scannedDisk" width="{{x}}" height="{{x}}"></span>
+</P>
+
+<script>
+    songs = {{songs | safe}}
+    // load(), loadIndexed(), diskChooser() moved to shared ravencode.js
+    const img = document.getElementById("scannedDisk");
+    const c = document.getElementById("myCanvas");
+    const x = c.width; const y = c.height;
+    const ctx = c.getContext("2d");
+    theta = 120 * Math.PI / 180.0  // changes angle size of clip region. 
+    FPR = 16;   // framesPerRevolution 
+    sSD  = true // show Scanned Disk
+
+    feedback("Loaded.");mask();  whichServer();
+</script>
+</body>
+</html>

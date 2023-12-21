@@ -1,0 +1,194 @@
+<html>
+<head>   <!-- about.html    trying for py/nonpy share  -->
+    <title>RedRaven Praxinoscope Toy -- Javascript Simulation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../static/ravenstyles.css">
+</head>
+
+<body>
+    <H2> Red Raven "Praxinoscope"     </H2>
+    <H3> An amusing toy with an intriguing backstory.</H3>
+    <h4><a href="javascript:window.history.back();">Back to the Simulation</a></h4>
+    <P>
+        High on a shelf in a cluttered garage lay a set of colorful 78rpm records 
+        in a decades-old carboard box. These records had labels with a "Red Raven" 
+        logo and animation frames, and were clearly part of a child's toy.  
+    </P>
+    <P>
+        These were Red Raven Magic Mirror records. The toy's "gimmick" was a "carousel"; 
+        a truncated cone* with 16 mirrors that was intended to be put on top 
+        of the record.  As the record played, one could see animations in 
+        the mirrors.  <font size=-1 color="gray"><a href="#wiki">details...</a> </font>
+    </P>
+
+    <div style="padding: 10px; border: 1px solid; width:500px;">
+    <table>
+        <TR><TD><img src="../static/RedRaven_carousel.jpg" width="225" height="207"></TD>
+            <TD><img src="../static/q31rot90.jpg" width="225" height="207"></TD>
+        </TR>
+        <TR><TD colspan=2><em>The carousel atop one of the records, in "play" mode, 
+            and a typical record with its animation frames</em></TD></TR>
+    </table>
+    </div>
+    <P> 
+    <H3>The animation art piqued my interest. </H3>
+    <P>
+        I wanted to see the animation, despite not having the mirrored carousel.
+        But!!! I have a computer, a web browser, access to a flatbed scanner, and 
+        I can write simple javascript and python.  So, task seemed both feasible and fun.
+    </P>
+    <P> 
+        As I was writing the first cut at animation, I noticed that for some of 
+        the records, the "sixteen" seemed odd. Although 16 worked in the code, 
+        the art, in some cases, suggested something different. 
+    </P>
+    <P> 
+        So I decided to do some experimentation. I used the scanned disk images and 
+        manipulated them using javascript, instead of just creating animated gifs.  
+    </P>
+    <P> 
+        Here, I replicate the animations from 24 sides of these 12 records.  
+        I added some control over display parameters (frames per revolution 
+        and virtual "turntable" speed.)
+    </P>
+    <H3> A curious observation:</H3>
+    <P> Although there are 16 mirrors in the carousel, I found that the best FPR value 
+        (frame per revolution) is sometimes different than the expected 16. To easily
+        see this, I made FPR runtime adjustable -- and I got interesting results.
+        <UL>
+        <LI>E.g., rr19c.jpg -- at FPR=16, Santa marches in place, and the singers move,
+            but at FPR=17, the singers are stationary and Santa walks, which seems
+            more "natural."
+        </LI>
+        <LI>E.g., rr1c.jpg -- at FPR=15 instead of 16, the tugboats are moving 
+            forward, not just bobbing up and down.
+        </LI>
+        <LI>E.g., rr20c.jpg -- at FPR=17, the bird is moving, the window stays
+            in place, and the sprite flies. At 16, everythong is moving.  
+        </LI>
+        </UL>
+    </P>
+    <HR>
+    <P>
+        <H2>And now for something completely technical</H2>
+        <H3> Creating the content and the website for the simulation:</H3>
+        <OL>
+            <LI> First step was to scan in images of the disks. I used a
+                HP-Envy scanner, and "easy scan" utility. This gave me a set
+                of 24 1700x2200 jpg images, saved at level 5 (out of 10.)
+            </LI>
+            <LI> Second step was to find the center of the spindle hole
+                on each of the images.  This was the same for all: (870,830).
+                I used the MacOS Preview utility to get the coordinates.
+                (That was certainly easier than learning about Hough transforms.)
+            </LI>
+            <LI> Third, found a good square bounding box for the label. 
+                From center to lower-right, I found that 620 was good, which
+                would give me a 1240x1240 square.
+                <pre>
+        We have: a 1700x2200 image, spindle center (870,830)
+        Goal is 1240x1240, spindle center (620,620)                    
+        870-620=250   870+620=1490    830-620=210   830+620=1450   
+        This gives me the crop coordinates.
+                </pre>      
+            </LI>
+            <LI> Used the Python pillow library to do the cropping:
+                <pre>
+        python3
+        from PIL import Image
+        #Image.open("rr1.jpg").crop((250,210,1490,1450)).show()
+        Image.open("rr1.jpg").crop((250,210,1490,1450)).save("rr1c.jpg")
+                </pre>
+            </LI>
+            <LI> In the code, to create an annular region mask that showed an arc of images
+                without the distracting raven logo, I needed the inner radius, which was
+                dependent on the canvas size. I took the easy way out: I took 6
+                samples, and used numpy to determine the best linear equation.
+                <pre>
+        python3
+        # https://numpy.org/doc/stable/reference/generated/numpy.polyfit.html
+        import numpy as np
+        s = np.array([400,620,990,1200,600,900])
+        t = np.array([106,162,262,320,156,235])
+        np.polyfit(s,t,1)
+        array([ 0.2679515 , -3.50859735])
+        ###  y = 0.27 x  - 3.5
+                </pre>
+            </LI>
+            <LI>
+                <P>Coded the website: </P>
+                <UL>
+                <LI> 
+                    I used Javascript and HTML canvas to display the scanned
+                    images that I pre-processed using Python and the PIL library.
+                </LI>
+                <LI>
+                    The record info is stored as a list of CSV strings.
+                </LI>
+                <LI>
+                    The "static-page" version was built to make this easily hostable.
+                    In the static version, the size of the canvas is hard-coded.
+                    (I documented the magic # "620" in case I want to change it. 
+                    canvasSize is a startup parameter in the Flask version.)
+                </LI>
+                </UL>
+            </LI>
+        </OL>
+        </P>
+        <P>
+            According to Wikipedia:
+            <blockquote>
+                The Red Raven Magic Mirror and its special children's phonograph records, 
+                introduced in the US in 1956, was a 20th-century adaptation of the praxinoscope.
+                The Magic Mirror was a sixteen-sided praxinoscopic reflector with angled facets. 
+                It was placed over the record player's spindle and rotated along with the 
+                78 rpm record, which had a very large label with a sequence of sixteen 
+                interwoven animation frames arrayed around its center. As the record played, 
+                the user gazed into the Magic Mirror and saw an endlessly repeating animated 
+                scene that illustrated the recorded song. 
+            </blockquote>
+     
+        </P>
+        
+    <H3>Nobody expects the static implementation! .</H3>
+        <P> The reason for a pure HTML/Javascript website -- I wanted to be able to
+            host this on a free, no-frills, server. Python, Flask and Jinja are more 
+            appropriate for development than my "create DOM element" Javascript hack, 
+            but simple web hosting was a 
+            driving motivation.
+        </P>
+        <P>
+            The Python Flask code is in this repo, and that should explain the 
+            "static" and "templates" directory structure. 
+        </P>
+
+    </P>
+    <h3 id="wiki">The summary on Wikipedia:</h3>
+    <P>
+    * According to Wikipedia:  https://en.wikipedia.org/wiki/Praxinoscope
+        <blockquote>
+            The Red Raven Magic Mirror and its special children's phonograph records,
+            introduced in the US in 1956, was a 20th-century adaptation of the praxinoscope.
+            The Magic Mirror was a sixteen-sided praxinoscopic reflector with angled facets.
+            It was placed over the record player's spindle and rotated along with the
+            78 rpm record, which had a very large label with a sequence of sixteen
+            interwoven animation frames arrayed around its center. As the record played,
+            the user gazed into the Magic Mirror and saw an endlessly repeating animated
+            scene that illustrated the recorded song.
+        </blockquote>
+        <P>
+        True, it's not a cone. I would have called it a right regular hexadecagonal 
+        pyramid. But, "sixteen-sided praxinoscopic reflector with angled facets" wins, IMO.
+        </P>
+    </P>
+    <h3 >As for the intriguing backstory...</h3>
+    <P>
+    Googling search terms "Muybridge" and "Matrix bullet time" led me to a rabbit hole, 
+    down into which here I shall not go, and to insights upon which I will not write, 
+    as there is insufficient space in the margin. 
+    </P>
+<HR/>
+&copy; Harold Finz, 2023
+</body>
+</html>
+
